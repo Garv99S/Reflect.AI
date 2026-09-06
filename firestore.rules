@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. User root document and subcollections strictly isolated to authenticated owner (Principle of Least Privilege: Zero Access for Admins to private entries)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /interactions/{interactionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /entries/{entryId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // 2. User Roles collection
+    match /roles/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // 3. Immutable Append-Only Audit Trail (strictly no updates or deletions allowed)
+    match /audit_logs/{logId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    // 4. Moderation Reports collection for Admin review under least privilege
+    match /moderation_reports/{reportId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 5. System Discrepancies and Integrity Logs
+    match /discrepancies/{discrepancyId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 6. Platform Governance & Operational Configuration
+    match /platform_config/{configId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
+

@@ -1,0 +1,143 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile document containing authentication metadata and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLoginAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid"]
+    },
+    "JournalEntry": {
+      "title": "JournalEntry",
+      "description": "User-isolated private journal entry document containing reflection content and chat history",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "mood": { "type": "string" },
+        "keyThemes": { "type": "array" },
+        "insights": { "type": "array" },
+        "summary": { "type": "string" },
+        "messages": { "type": "array" },
+        "images": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "content", "createdAt"]
+    },
+    "UserRole": {
+      "title": "UserRole",
+      "description": "Role definition document for Role-Based Access Control (RBAC)",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["owner", "admin", "user"] },
+        "assignedBy": { "type": "string" },
+        "assignedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "role"]
+    },
+    "AuditLogEntry": {
+      "title": "AuditLogEntry",
+      "description": "Immutable append-only audit trail logging administrative and governance actions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "actorUid": { "type": "string" },
+        "actorEmail": { "type": "string" },
+        "actorRole": { "type": "string" },
+        "action": { "type": "string" },
+        "targetResource": { "type": "string" },
+        "details": { "type": "object" },
+        "signatureStatus": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "actorUid", "action"]
+    },
+    "ModerationReport": {
+      "title": "ModerationReport",
+      "description": "Flagged content report for Admin moderation under least-privilege review",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "reportedBy": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "resolved", "dismissed"] },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "actionTaken": { "type": "string" },
+        "resolvedBy": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "reason", "status"]
+    },
+    "SystemDiscrepancy": {
+      "title": "SystemDiscrepancy",
+      "description": "Integrity and security discrepancy detected across system boundaries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "category": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "investigating", "resolved"] },
+        "severity": { "type": "string", "enum": ["info", "warning", "critical"] }
+      },
+      "required": ["id", "timestamp", "title", "status"]
+    },
+    "PlatformConfig": {
+      "title": "PlatformConfig",
+      "description": "Owner-controlled platform operational and governance configuration",
+      "type": "object",
+      "properties": {
+        "maintenanceMode": { "type": "boolean" },
+        "allowNewRegistrations": { "type": "boolean" },
+        "moderationAutoScan": { "type": "boolean" },
+        "auditRetentionDays": { "type": "number" },
+        "activeModelTier": { "type": "string" },
+        "rateLimitPerMinute": { "type": "number" }
+      },
+      "required": ["maintenanceMode"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "UserProfile" },
+      "description": "User profile document isolated to user"
+    },
+    "/users/{userId}/entries/{entryId}": {
+      "schema": { "$ref": "JournalEntry" },
+      "description": "Private journal entries with strict zero-trust isolation"
+    },
+    "/roles/{userId}": {
+      "schema": { "$ref": "UserRole" },
+      "description": "Role assignment document managed by owner"
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "AuditLogEntry" },
+      "description": "Immutable append-only audit trail"
+    },
+    "/moderation_reports/{reportId}": {
+      "schema": { "$ref": "ModerationReport" },
+      "description": "Moderation report documents for admin review"
+    },
+    "/discrepancies/{discrepancyId}": {
+      "schema": { "$ref": "SystemDiscrepancy" },
+      "description": "System integrity and discrepancy records"
+    },
+    "/platform_config/{configId}": {
+      "schema": { "$ref": "PlatformConfig" },
+      "description": "Platform governance settings"
+    }
+  }
+}
